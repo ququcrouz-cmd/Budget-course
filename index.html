@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d2137" />
+  <meta name="description" content="Budget courses mensuel 250€ — Athlète 120kg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="GroceryAthlete" />
+
+  <title>Athlete Grocery — 250€</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── CSS Variables ─────────────────────────────────────── */
+    :root {
+      --bg-deep:    #060c18;
+      --bg-card:    #0d1f35;
+      --bg-card2:   #112845;
+      --bg-input:   #0a1829;
+      --border:     #1e3f60;
+      --accent:     #00c9ff;
+      --accent2:    #38ef7d;
+      --accent3:    #ff6b35;
+      --text:       #e8f4fd;
+      --text-muted: #7ba3c0;
+      --red:        #ff4757;
+      --yellow:     #ffa502;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      background: var(--bg-deep);
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      height: 100%;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Scrollable content areas */
+    .scroll-area {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .scroll-area::-webkit-scrollbar { width: 4px; }
+    .scroll-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* ── Typography ────────────────────────────────────────── */
+    .font-display { font-family: 'Barlow Condensed', sans-serif; }
+
+    /* ── Layout shells ─────────────────────────────────────── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      max-width: 480px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    #tab-content {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .tab-panel {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+    }
+    .tab-panel.active { display: flex; }
+
+    /* ── Bottom nav ────────────────────────────────────────── */
+    #bottom-nav {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding-bottom: env(safe-area-inset-bottom, 8px);
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 4px 8px;
+      gap: 3px;
+      cursor: pointer;
+      transition: color 0.2s;
+      color: var(--text-muted);
+      border: none;
+      background: none;
+      touch-action: manipulation;
+    }
+    .nav-btn.active { color: var(--accent); }
+    .nav-btn svg { width: 22px; height: 22px; flex-shrink: 0; }
+    .nav-btn span { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+
+    /* ── Top header ────────────────────────────────────────── */
+    .page-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px 12px;
+      flex-shrink: 0;
+    }
+    .page-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .page-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    /* ── Cards ─────────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    /* ── Budget bar ─────────────────────────────────────────── */
+    .budget-track {
+      height: 10px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    .budget-fill {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.5s cubic-bezier(.4,0,.2,1), background 0.3s;
+    }
+    .budget-fill.ok   { background: linear-gradient(90deg, #38ef7d, #00c9ff); }
+    .budget-fill.warn { background: linear-gradient(90deg, #ffa502, #ff6b35); }
+    .budget-fill.over { background: var(--red); }
+
+    /* ── Macro grid ─────────────────────────────────────────── */
+    .macro-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .macro-item {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .macro-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+    .macro-value {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .macro-unit { font-size: 11px; color: var(--text-muted); }
+
+    /* ── Product rows ───────────────────────────────────────── */
+    .product-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      transition: border-color 0.2s;
+    }
+    .product-row:active { border-color: var(--accent); }
+
+    .cat-badge {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    /* ── Stepper ────────────────────────────────────────────── */
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .step-btn {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--accent);
+      touch-action: manipulation;
+      user-select: none;
+      transition: background 0.15s;
+    }
+    .step-btn:active { background: rgba(0,201,255,0.15); }
+    .step-count {
+      width: 32px;
+      text-align: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    /* ── Search input ───────────────────────────────────────── */
+    .search-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px 10px 38px;
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .search-wrap { position: relative; }
+    .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* ── Primary button ─────────────────────────────────────── */
+    .btn-primary {
+      background: linear-gradient(135deg, #00c9ff, #0077b6);
+      color: #fff;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: opacity 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+    }
+    .btn-primary:active { opacity: 0.85; transform: scale(0.98); }
+
+    .btn-danger {
+      background: rgba(255,71,87,0.15);
+      color: var(--red);
+      border: 1px solid rgba(255,71,87,0.3);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background 0.2s;
+    }
+    .btn-danger:active { background: rgba(255,71,87,0.3); }
+
+    /* ── Modal overlay ──────────────────────────────────────── */
+    #modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6,12,24,0.85);
+      z-index: 500;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    #modal-overlay.open { display: flex; }
+
+    #modal-sheet {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 480px;
+      max-height: 80dvh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom, 8px);
+      animation: slideUp 0.25s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0);   opacity: 1; }
+    }
+
+    .modal-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 99px;
+      margin: 10px auto 14px;
+      flex-shrink: 0;
+    }
+
+    /* ── Toast ──────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 99px;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Sync status indicator ──────────────────────────────── */
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .sync-dot.ok     { background: var(--accent2); }
+    .sync-dot.dirty  { background: var(--yellow); }
+    .sync-dot.error  { background: var(--red); }
+    .sync-dot.loading {
+      background: var(--accent);
+      animation: pulse 1s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── Category color badges ──────────────────────────────── */
+    .cat-viande  { background: rgba(255,107,53,0.2); color: #ff9a6c; }
+    .cat-oeufs   { background: rgba(255,165,2,0.2);  color: #ffc039; }
+    .cat-feculents { background: rgba(56,239,125,0.2); color: #6cf5a0; }
+    .cat-legumes { background: rgba(0,201,255,0.2);  color: #5ed9ff; }
+    .cat-fruits  { background: rgba(255,99,132,0.2); color: #ff8fab; }
+    .cat-legum2  { background: rgba(168,85,247,0.2); color: #c084fc; }
+    .cat-graisses { background: rgba(234,179,8,0.2); color: #fde047; }
+    .cat-cond    { background: rgba(20,184,166,0.2); color: #5eead4; }
+    .cat-bois    { background: rgba(99,102,241,0.2); color: #a5b4fc; }
+
+    /* ── Section header ─────────────────────────────────────── */
+    .section-hdr {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      padding: 4px 0 6px;
+    }
+
+    /* ── Empty state ────────────────────────────────────────── */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--text-muted);
+      padding: 40px 20px;
+    }
+    .empty-state svg { width: 48px; height: 48px; opacity: 0.4; }
+    .empty-state p { font-size: 14px; text-align: center; }
+
+    /* ── Season badge ───────────────────────────────────────── */
+    .badge-summer {
+      font-size: 9px;
+      font-weight: 700;
+      background: rgba(255,214,0,0.18);
+      color: #ffd600;
+      border-radius: 4px;
+      padding: 1px 5px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── Scrollable list in modals ──────────────────────────── */
+    .modal-list { overflow-y: auto; flex: 1; }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-card2) 25%, var(--border) 50%, var(--bg-card2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  APP SHELL                                              -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- ── TAB CONTENT ─────────────────────────────────────── -->
+  <div id="tab-content">
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- TAB 1 — Synthèse                                      -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div id="tab-synthese" class="tab-panel active">
+      <div class="page-header">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div>
+            <div class="page-title">📊 Synthèse</div>
+            <div class="page-subtitle">Budget mensuel · Athlète 120 kg</div>
+          </div>
+          <div id="sync-indicator" style="display:flex;align-items:center;font-size:11px;color:var(--text-muted);">
+            <span class="sync-dot dirty" id="sync-dot"></span>
+            <span id="sync-label">Local</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scroll-area" style="flex:1; padding: 14px 14px 8px;">
+
+        <!-- Budget card -->
+        <div class="card" style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+            <span class="font-display" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">Budget</span>
+            <span id="budget-pct" class="font-display" style="font-size:13px;font-weight:700;">0%</span>
+          </div>
+          <div class="budget-track">
+            <div class="budget-fill ok" id="budget-fill" style="width:0%;"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;">
+            <div>
+              <div style="font-size:11px;color:var(--text-muted);">Dépensé</div>
+              <div class="font-display" style="font-size:28px;font-weight:900;" id="budget-spent">0,00 €</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px;color:var(--text-muted);">Reste à vivre</div>
+              <div class="font-display" style="font-size:28px;font-weight:900;color:var(--accent2);" id="budget-remaining">250,00 €</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monthly macros -->
+        <div class="section-hdr">📦 Macros mensuels totaux</div>
+        <div class="macro-grid" style="margin-bottom:12px;">
+          <div class="macro-item">
+            <div class="macro-label">⚡ Calories</div>
+            <div class="macro-value" style="color:var(--accent);" id="m-kcal-total">0</div>
+            <div class="macro-unit">kcal / mois</div>
+          </div>
+          <div class="macro-item">
+            <div class="macro-label">💪 Protéines</div>
+            <div class="macro-value" style="color:var(--accent2);" id="m-prot-total">0</div>
+            <div class="macro-unit">g / mois</div>
+          </div>
+          <div class="macro-item">
+            <div class="macro-label">🌾 Glucides</div>
+            <div class="macro-value" style="color:var(--yellow);" id="m-gluc-total">0</div>
+            <div class="macro-unit">g / mois</div>
+          </div>
+          <div class="macro-item">
+            <div class="macro-label">🥑 Lipides</div>
+            <div class="macro-value" style="color:var(--accent3);" id="m-lip-total">0</div>
+            <div class="macro-unit">g / mois</div>
+          </div>
+        </div>
+
+        <!-- Daily averages -->
+        <div class="section-hdr">📅 Moyennes journalières (÷ 30)</div>
+        <div class="macro-grid" style="margin-bottom:14px;">
+          <div class="macro-item">
+            <div class="macro-label">⚡ Calories</div>
+            <div class="macro-value" style="color:var(--accent);" id="m-kcal-day">0</div>
+            <div class="macro-unit">kcal / jour</div>
+          </div>
+          <div class="macro-item">
+            <div class="macro-label">💪 Protéines</div>
+            <div class="macro-value" style="color:var(--accent2);" id="m-prot-day">0</div>
+            <div class="macro-unit">g / jour</div>
+          </div>
+          <div class="macro-item">
+            <div class="macro-label">🌾 Glucides</div>
+            <div class="macro-value" style="color:var(--yellow);" id="m-gluc-day">0</div>
+            <div class="macro-unit">g / jour</div>
+          </div>
+          <div class="macro-item">
+            <div class="macro-label">🥑 Lipides</div>
+            <div class="macro-value" style="color:var(--accent3);" id="m-lip-day">0</div>
+            <div class="macro-unit">g / jour</div>
+          </div>
+        </div>
+
+        <!-- Protein target card -->
+        <div class="card" style="margin-bottom:14px; background: linear-gradient(135deg,#0d2137,#112845);">
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em;font-weight:700;margin-bottom:6px;">🎯 Objectif protéines athlète 120kg</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div>
+              <div class="font-display" style="font-size:14px;color:var(--text-muted);">Min recommandé</div>
+              <div class="font-display" style="font-size:22px;font-weight:700;color:var(--accent2);">180g – 240g / jour</div>
+              <div style="font-size:11px;color:var(--text-muted);">1.5 – 2g × poids corporel</div>
+            </div>
+          </div>
+          <div id="protein-status" style="margin-top:8px;font-size:12px;font-weight:600;color:var(--text-muted);">Ajoutez des articles à votre liste pour voir l'analyse.</div>
+        </div>
+
+        <!-- Sync button -->
+        <button class="btn-primary" id="btn-sync" style="width:100%;margin-bottom:20px;" onclick="syncList()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:18px;height:18px;">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+            <path d="M21 3v5h-5"/>
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+            <path d="M3 21v-5h5"/>
+          </svg>
+          Synchroniser avec Google Sheets
+        </button>
+
+      </div>
+    </div><!-- /tab-synthese -->
+
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- TAB 2 — Base Produits                                 -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div id="tab-produits" class="tab-panel">
+      <div class="page-header">
+        <div class="page-title" style="margin-bottom:10px;">🗂️ Base Produits</div>
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input class="search-input" id="search-catalog" placeholder="Rechercher un produit…" type="search" oninput="filterCatalog(this.value)" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="scroll-area" id="catalog-list" style="flex:1; padding:10px 14px 8px;">
+        <div class="skeleton" style="height:58px;margin-bottom:6px;"></div>
+        <div class="skeleton" style="height:58px;margin-bottom:6px;"></div>
+        <div class="skeleton" style="height:58px;margin-bottom:6px;"></div>
+      </div>
+    </div><!-- /tab-produits -->
+
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- TAB 3 — Liste de Course                               -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div id="tab-liste" class="tab-panel">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div class="page-title">🛒 Liste de Course</div>
+            <div class="page-subtitle" id="list-count">0 article · 0,00 €</div>
+          </div>
+          <button class="btn-primary" style="padding:10px 14px;" onclick="openAddModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:16px;height:16px;"><path d="M12 5v14M5 12h14"/></svg>
+            Ajouter
+          </button>
+        </div>
+      </div>
+
+      <div class="scroll-area" id="shopping-list" style="flex:1; padding:10px 14px 8px;">
+        <div class="empty-state" id="list-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <p>Votre liste est vide.<br>Appuyez sur <strong>Ajouter</strong> pour commencer.</p>
+        </div>
+      </div>
+    </div><!-- /tab-liste -->
+
+  </div><!-- /tab-content -->
+
+
+  <!-- ── BOTTOM NAV ──────────────────────────────────────── -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" id="nav-synthese" onclick="switchTab('synthese')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      <span>Synthèse</span>
+    </button>
+    <button class="nav-btn" id="nav-produits" onclick="switchTab('produits')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+      </svg>
+      <span>Base</span>
+    </button>
+    <button class="nav-btn" id="nav-liste" onclick="switchTab('liste')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+      <span>Liste</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  ADD ITEM MODAL                                         -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div id="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="padding: 0 14px 12px; flex-shrink:0;">
+      <div class="font-display" style="font-size:18px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Ajouter un produit</div>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="search-input" id="modal-search" placeholder="Rechercher…" type="search" oninput="filterModal(this.value)" autocomplete="off" />
+      </div>
+    </div>
+    <div class="modal-list scroll-area" id="modal-product-list" style="padding:0 14px 14px;">
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  TOAST                                                  -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!--  FRONTEND JAVASCRIPT                                    -->
+<!-- ════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ────────────────────────────────────────────────────────────
+//  ★ CONFIGURATION — Paste your Apps Script Web App URL here
+// ────────────────────────────────────────────────────────────
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec',
+  BUDGET: 250,
+  DAYS_IN_MONTH: 30,
+  LS_PRODUCTS: 'ag_products_v1',
+  LS_LIST:     'ag_list_v1',
+  LS_SYNCED:   'ag_last_sync',
+};
+
+// ────────────────────────────────────────────────────────────
+//  STATE
+// ────────────────────────────────────────────────────────────
+let state = {
+  products:   [],
+  shoppingList: [],    // [{ id, name, category, price, unit, qty, kcal, prot, gluc, lip }]
+  isDirty:    false,
+  isLoading:  false,
+};
+
+// ────────────────────────────────────────────────────────────
+//  CATEGORY HELPERS
+// ────────────────────────────────────────────────────────────
+function catClass(cat = '') {
+  const c = cat.toLowerCase();
+  if (c.includes('viande') || c.includes('poisson')) return 'cat-viande';
+  if (c.includes('œuf')  || c.includes('lait'))     return 'cat-oeufs';
+  if (c.includes('féc')  || c.includes('fec'))      return 'cat-feculents';
+  if (c.includes('légume')|| c.includes('legume'))  return 'cat-legumes';
+  if (c.includes('fruit'))                          return 'cat-fruits';
+  if (c.includes('légum2') || c.includes('légumineuse') || c.includes('legumineuse')) return 'cat-legum2';
+  if (c.includes('graisse') || c.includes('matière')) return 'cat-graisses';
+  if (c.includes('condiment') || c.includes('boisson')) return c.includes('bois') ? 'cat-bois' : 'cat-cond';
+  return 'cat-cond';
+}
+
+function catEmoji(cat = '') {
+  const c = cat.toLowerCase();
+  if (c.includes('viande') || c.includes('poisson')) return '🥩';
+  if (c.includes('œuf')  || c.includes('lait'))     return '🥛';
+  if (c.includes('féc')  || c.includes('fec'))      return '🌾';
+  if (c.includes('légume') || c.includes('legume')) return '🥦';
+  if (c.includes('fruit'))                          return '🍓';
+  if (c.includes('légumineuse') || c.includes('legumineuse')) return '🫘';
+  if (c.includes('graisse') || c.includes('matière')) return '🥑';
+  if (c.includes('boisson'))                        return '💧';
+  return '🧂';
+}
+
+// ────────────────────────────────────────────────────────────
+//  LOCAL STORAGE
+// ────────────────────────────────────────────────────────────
+function saveLocal() {
+  try {
+    localStorage.setItem(CONFIG.LS_PRODUCTS, JSON.stringify(state.products));
+    localStorage.setItem(CONFIG.LS_LIST,     JSON.stringify(state.shoppingList));
+  } catch(e) { console.warn('LS save failed', e); }
+}
+
+function loadLocal() {
+  try {
+    const p = localStorage.getItem(CONFIG.LS_PRODUCTS);
+    const l = localStorage.getItem(CONFIG.LS_LIST);
+    if (p) state.products     = JSON.parse(p);
+    if (l) state.shoppingList = JSON.parse(l);
+  } catch(e) { console.warn('LS load failed', e); }
+}
+
+// ────────────────────────────────────────────────────────────
+//  REMOTE FETCH (Google Apps Script)
+// ────────────────────────────────────────────────────────────
+async function fetchRemote() {
+  if (CONFIG.APPS_SCRIPT_URL.includes('YOUR_DEPLOYMENT_ID')) {
+    showToast('⚠️ URL Apps Script non configurée — données locales utilisées');
+    return;
+  }
+  setSyncStatus('loading', 'Chargement…');
+  try {
+    const res  = await fetch(CONFIG.APPS_SCRIPT_URL);
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error);
+
+    // Normalise headers from Apps Script response
+    state.products = (data.products || []).map(normalizeProduct);
+
+    // Restore shopping list: match saved list IDs against fresh product data
+    const savedList = data.list || [];
+    if (savedList.length > 0) {
+      state.shoppingList = savedList.map(item => {
+        const id  = item['ID Produit'] || item.id || '';
+        const qty = parseInt(item['Quantite'] || item.qty || 1, 10);
+        const prod = state.products.find(p => p.id === id);
+        if (prod) return { ...prod, qty };
+        // Orphaned item — keep with minimal info
+        return { id, name: item['Nom'] || id, qty, price: 0, kcal:0, prot:0, gluc:0, lip:0, category:'', unit:'' };
+      });
+    }
+
+    saveLocal();
+    localStorage.setItem(CONFIG.LS_SYNCED, new Date().toISOString());
+    setSyncStatus('ok', 'Synchronisé');
+    showToast('✅ Données synchronisées');
+  } catch(err) {
+    setSyncStatus('error', 'Erreur réseau');
+    showToast('❌ ' + err.message);
+    console.error(err);
+  }
+}
+
+async function syncList() {
+  if (CONFIG.APPS_SCRIPT_URL.includes('YOUR_DEPLOYMENT_ID')) {
+    showToast('⚠️ Configurez l\'URL Apps Script dans CONFIG');
+    return;
+  }
+  setSyncStatus('loading', 'Sync…');
+  const btn = document.getElementById('btn-sync');
+  btn.disabled = true;
+  try {
+    const payload = {
+      list: state.shoppingList.map(item => ({
+        'ID Produit': item.id,
+        'Nom':        item.name,
+        'Quantite':   item.qty,
+      }))
+    };
+    const res  = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    state.isDirty = false;
+    localStorage.setItem(CONFIG.LS_SYNCED, new Date().toISOString());
+    setSyncStatus('ok', 'Synchronisé');
+    showToast('✅ Liste sauvegardée (' + data.saved + ' articles)');
+  } catch(err) {
+    setSyncStatus('error', 'Erreur');
+    showToast('❌ ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function normalizeProduct(raw) {
+  return {
+    id:       raw['ID']           || raw.id  || '',
+    category: raw['Categorie']    || raw.category || '',
+    name:     raw['Nom']          || raw.name     || '',
+    price:    parseFloat(raw['Prix (€)'] || raw.price || 0),
+    unit:     raw['Unite']        || raw.unit      || '',
+    kcal:     parseFloat(raw['Calories/100g']  || raw.kcal  || 0),
+    prot:     parseFloat(raw['Proteines/100g'] || raw.prot  || 0),
+    gluc:     parseFloat(raw['Glucides/100g']  || raw.gluc  || 0),
+    lip:      parseFloat(raw['Lipides/100g']   || raw.lip   || 0),
+    season:   raw['Saison']       || raw.season   || '',
+  };
+}
+
+// ────────────────────────────────────────────────────────────
+//  SYNC STATUS UI
+// ────────────────────────────────────────────────────────────
+function setSyncStatus(status, label) {
+  const dot   = document.getElementById('sync-dot');
+  const lbl   = document.getElementById('sync-label');
+  dot.className = 'sync-dot ' + status;
+  lbl.textContent = label;
+}
+
+// ────────────────────────────────────────────────────────────
+//  TAB NAVIGATION
+// ────────────────────────────────────────────────────────────
+let currentTab = 'synthese';
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  currentTab = name;
+}
+
+// ────────────────────────────────────────────────────────────
+//  CATALOG RENDERING
+// ────────────────────────────────────────────────────────────
+function renderCatalog(products) {
+  const container = document.getElementById('catalog-list');
+  if (!products.length) {
+    container.innerHTML = '<div class="empty-state"><p>Aucun produit trouvé.</p></div>';
+    return;
+  }
+
+  // Group by category
+  const groups = {};
+  products.forEach(p => {
+    const c = p.category || 'Divers';
+    if (!groups[c]) groups[c] = [];
+    groups[c].push(p);
+  });
+
+  let html = '';
+  Object.entries(groups).forEach(([cat, items]) => {
+    html += `<div class="section-hdr">${catEmoji(cat)} ${cat}</div>`;
+    items.forEach(p => {
+      const isInList = state.shoppingList.some(i => i.id === p.id);
+      html += `
+        <div class="product-row" style="${isInList ? 'border-color:var(--accent);' : ''}">
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span style="font-size:14px;font-weight:600;line-height:1.2;">${escHtml(p.name)}</span>
+              ${p.season === 'Été' ? '<span class="badge-summer">☀️ Été</span>' : ''}
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;margin-top:4px;flex-wrap:wrap;">
+              <span class="cat-badge ${catClass(p.category)}">${escHtml(p.category)}</span>
+              <span style="font-size:11px;color:var(--text-muted);">${p.price.toFixed(2)} € / ${escHtml(p.unit)}</span>
+            </div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:3px;">
+              ⚡${p.kcal} kcal · 💪${p.prot}g prot · 🌾${p.gluc}g gluc · 🥑${p.lip}g lip
+            </div>
+          </div>
+          ${isInList
+            ? `<span style="font-size:11px;color:var(--accent);font-weight:700;">✓ Ajouté</span>`
+            : `<button onclick="addToListFromCatalog('${escAttr(p.id)}')" style="flex-shrink:0;background:rgba(0,201,255,0.12);border:1px solid rgba(0,201,255,0.3);color:var(--accent);border-radius:8px;padding:7px 10px;font-weight:700;font-size:13px;cursor:pointer;" aria-label="Ajouter ${escAttr(p.name)}">+</button>`
+          }
+        </div>`;
+    });
+  });
+  container.innerHTML = html;
+}
+
+function filterCatalog(query) {
+  const q = query.toLowerCase().trim();
+  if (!q) { renderCatalog(state.products); return; }
+  renderCatalog(state.products.filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    p.category.toLowerCase().includes(q) ||
+    p.season.toLowerCase().includes(q)
+  ));
+}
+
+// ────────────────────────────────────────────────────────────
+//  SHOPPING LIST RENDERING
+// ────────────────────────────────────────────────────────────
+function renderList() {
+  const container = document.getElementById('shopping-list');
+  const empty     = document.getElementById('list-empty');
+
+  if (!state.shoppingList.length) {
+    empty.style.display = 'flex';
+    const rows = container.querySelectorAll('.product-row');
+    rows.forEach(r => r.remove());
+    updateSummary();
+    return;
+  }
+  empty.style.display = 'none';
+
+  let html = '';
+  state.shoppingList.forEach(item => {
+    const total = (item.price * item.qty).toFixed(2);
+    html += `
+      <div class="product-row" data-id="${escAttr(item.id)}">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;line-height:1.3;">${escHtml(item.name)}</div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:3px;flex-wrap:wrap;">
+            <span class="cat-badge ${catClass(item.category)}">${escHtml(item.category)}</span>
+            <span style="font-size:12px;color:var(--text-muted);">${item.price.toFixed(2)} € / ${escHtml(item.unit)}</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">
+            ⚡${item.kcal} kcal · 💪${item.prot}g · 🌾${item.gluc}g · 🥑${item.lip}g <em style="font-size:9px;">/100g</em>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+          <div class="stepper">
+            <button class="step-btn" onclick="changeQty('${escAttr(item.id)}',-1)" aria-label="Réduire">−</button>
+            <span class="step-count" id="qty-${escAttr(item.id)}">${item.qty}</span>
+            <button class="step-btn" onclick="changeQty('${escAttr(item.id)}',1)"  aria-label="Augmenter">+</button>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:var(--accent);">${total} €</div>
+          <button class="btn-danger" onclick="removeFromList('${escAttr(item.id)}')" aria-label="Supprimer">✕ Retirer</button>
+        </div>
+      </div>`;
+  });
+  container.innerHTML = html + '<div style="height:6px;"></div>';
+
+  updateSummary();
+}
+
+// ────────────────────────────────────────────────────────────
+//  LIST ACTIONS
+// ────────────────────────────────────────────────────────────
+function addToList(productId) {
+  const prod = state.products.find(p => p.id === productId);
+  if (!prod) return;
+  const existing = state.shoppingList.find(i => i.id === productId);
+  if (existing) {
+    existing.qty++;
+  } else {
+    state.shoppingList.push({ ...prod, qty: 1 });
+  }
+  state.isDirty = true;
+  setSyncStatus('dirty', 'Non sync.');
+  saveLocal();
+  renderList();
+}
+
+function addToListFromCatalog(productId) {
+  addToList(productId);
+  renderCatalog(
+    (() => {
+      const q = (document.getElementById('search-catalog').value || '').toLowerCase().trim();
+      return q ? state.products.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+      ) : state.products;
+    })()
+  );
+  showToast('✅ Ajouté à la liste');
+}
+
+function changeQty(productId, delta) {
+  const item = state.shoppingList.find(i => i.id === productId);
+  if (!item) return;
+  item.qty = Math.max(0, item.qty + delta);
+  if (item.qty === 0) {
+    state.shoppingList = state.shoppingList.filter(i => i.id !== productId);
+  }
+  state.isDirty = true;
+  setSyncStatus('dirty', 'Non sync.');
+  saveLocal();
+  renderList();
+}
+
+function removeFromList(productId) {
+  state.shoppingList = state.shoppingList.filter(i => i.id !== productId);
+  state.isDirty = true;
+  setSyncStatus('dirty', 'Non sync.');
+  saveLocal();
+  renderList();
+  if (currentTab === 'produits') {
+    filterCatalog(document.getElementById('search-catalog').value || '');
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+//  SUMMARY / MACROS
+// ────────────────────────────────────────────────────────────
+function updateSummary() {
+  const items = state.shoppingList;
+
+  const totalCost = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const pct       = Math.min((totalCost / CONFIG.BUDGET) * 100, 100);
+  const remaining = CONFIG.BUDGET - totalCost;
+
+  // Budget bar
+  const fill = document.getElementById('budget-fill');
+  fill.style.width = pct + '%';
+  fill.className = 'budget-fill ' +
+    (pct >= 100 ? 'over' : pct >= 85 ? 'warn' : 'ok');
+
+  document.getElementById('budget-pct').textContent      = Math.round(pct) + '%';
+  document.getElementById('budget-spent').textContent    = fmtEur(totalCost);
+  document.getElementById('budget-remaining').textContent = fmtEur(remaining);
+  document.getElementById('budget-remaining').style.color =
+    remaining < 0 ? 'var(--red)' : remaining < 30 ? 'var(--yellow)' : 'var(--accent2)';
+
+  // Macros — assuming 100g per item per unit (simplification; real weight in qty)
+  // We compute per-item macros as (kcal/100g × price_weight_estimate):
+  // For simplicity: 1 qty unit = 100g of the macros column (representative per-pack value)
+  // Users can adjust in Sheets for more precision.
+  let kcalTotal = 0, protTotal = 0, glucTotal = 0, lipTotal = 0;
+  items.forEach(i => {
+    kcalTotal += i.kcal * i.qty;
+    protTotal += i.prot * i.qty;
+    glucTotal += i.gluc * i.qty;
+    lipTotal  += i.lip  * i.qty;
+  });
+
+  document.getElementById('m-kcal-total').textContent = Math.round(kcalTotal).toLocaleString('fr-FR');
+  document.getElementById('m-prot-total').textContent = Math.round(protTotal).toLocaleString('fr-FR');
+  document.getElementById('m-gluc-total').textContent = Math.round(glucTotal).toLocaleString('fr-FR');
+  document.getElementById('m-lip-total').textContent  = Math.round(lipTotal).toLocaleString('fr-FR');
+
+  const D = CONFIG.DAYS_IN_MONTH;
+  document.getElementById('m-kcal-day').textContent = Math.round(kcalTotal / D).toLocaleString('fr-FR');
+  document.getElementById('m-prot-day').textContent = Math.round(protTotal / D).toLocaleString('fr-FR');
+  document.getElementById('m-gluc-day').textContent = Math.round(glucTotal / D).toLocaleString('fr-FR');
+  document.getElementById('m-lip-day').textContent  = Math.round(lipTotal  / D).toLocaleString('fr-FR');
+
+  // Protein status for 120kg athlete
+  const protDay = protTotal / D;
+  const ps = document.getElementById('protein-status');
+  if (items.length === 0) {
+    ps.textContent = 'Ajoutez des articles pour voir l\'analyse.';
+    ps.style.color = 'var(--text-muted)';
+  } else if (protDay >= 180) {
+    ps.textContent = `✅ Objectif atteint ! ${Math.round(protDay)}g / jour — Excellent pour la masse musculaire.`;
+    ps.style.color = 'var(--accent2)';
+  } else if (protDay >= 120) {
+    ps.textContent = `⚠️ ${Math.round(protDay)}g / jour — En dessous de l'objectif (180g min). Ajoutez du poulet, skyr ou thon.`;
+    ps.style.color = 'var(--yellow)';
+  } else {
+    ps.textContent = `❌ ${Math.round(protDay)}g / jour — Apport insuffisant. Ajoutez plus de sources protéiques.`;
+    ps.style.color = 'var(--red)';
+  }
+
+  // List count badge
+  const totalItems = items.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('list-count').textContent =
+    totalItems + ' article' + (totalItems > 1 ? 's' : '') + ' · ' + fmtEur(totalCost);
+}
+
+// ────────────────────────────────────────────────────────────
+//  ADD ITEM MODAL
+// ────────────────────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('modal-search').value = '';
+  renderModalList(state.products);
+  setTimeout(() => document.getElementById('modal-search').focus(), 300);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+function filterModal(query) {
+  const q = query.toLowerCase().trim();
+  renderModalList(q
+    ? state.products.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+      )
+    : state.products
+  );
+}
+
+function renderModalList(products) {
+  const container = document.getElementById('modal-product-list');
+  if (!products.length) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Aucun résultat</div>';
+    return;
+  }
+  let html = '';
+  products.forEach(p => {
+    const inList = state.shoppingList.find(i => i.id === p.id);
+    html += `
+      <div class="product-row" style="cursor:pointer;${inList ? 'border-color:var(--accent);' : ''}"
+           onclick="modalAddItem('${escAttr(p.id)}')">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;">${escHtml(p.name)}
+            ${p.season === 'Été' ? ' <span class="badge-summer">☀️</span>' : ''}
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:3px;">
+            <span class="cat-badge ${catClass(p.category)}">${escHtml(p.category)}</span>
+            <span style="font-size:11px;color:var(--text-muted);">${p.price.toFixed(2)} € / ${escHtml(p.unit)}</span>
+          </div>
+        </div>
+        <div style="flex-shrink:0;font-size:20px;color:${inList ? 'var(--accent2)' : 'var(--accent)'};">
+          ${inList ? '✓' : '+'}
+        </div>
+      </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function modalAddItem(productId) {
+  addToList(productId);
+  // Refresh modal to reflect new status
+  filterModal(document.getElementById('modal-search').value || '');
+  showToast('✅ Ajouté à la liste');
+}
+
+// ────────────────────────────────────────────────────────────
+//  TOAST
+// ────────────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ────────────────────────────────────────────────────────────
+//  UTILS
+// ────────────────────────────────────────────────────────────
+function fmtEur(n) {
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  return String(s).replace(/'/g,"\\'").replace(/"/g,'&quot;');
+}
+
+// ────────────────────────────────────────────────────────────
+//  INIT
+// ────────────────────────────────────────────────────────────
+async function init() {
+  // 1. Load from LocalStorage immediately (instant load)
+  loadLocal();
+
+  if (state.products.length) {
+    renderCatalog(state.products);
+    renderList();
+    setSyncStatus('dirty', 'Cache local');
+  }
+
+  // 2. Try remote fetch (non-blocking)
+  await fetchRemote();
+
+  // 3. Re-render with fresh data
+  renderCatalog(state.products);
+  renderList();
+}
+
+// ── Register Service Worker ───────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(reg => console.log('[PWA] SW registered', reg.scope))
+      .catch(err => console.warn('[PWA] SW failed', err));
+  });
+}
+
+// ── Keyboard: close modal on Escape ──────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ── Boot ──────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
